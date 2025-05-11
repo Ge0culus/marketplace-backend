@@ -8,14 +8,19 @@ const router = express.Router();
 router.post('/', authenticate, async (req, res) => {
   const { title, description, price, imageUrl } = req.body;
 
+  const listingData = {
+    title,
+    description,
+    price,
+    ownerId: req.user.id
+  };
+
+  if (imageUrl && imageUrl.trim() !== '') {
+    listingData.imageUrl = imageUrl;
+  }
+
   try {
-    const listing = await Listing.create({
-      title,
-      description,
-      price,
-      imageUrl,
-      ownerId: req.user.id
-    });
+    const listing = await Listing.create(listingData);
     res.status(201).json(listing);
   } catch {
     res.status(500).json({ error: 'Failed to create listing.' });
