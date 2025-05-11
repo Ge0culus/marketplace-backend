@@ -22,9 +22,10 @@ router.post('/', authenticate, async (req, res) => {
   try {
     const listing = await Listing.create(listingData);
     res.status(201).json(listing);
-  } catch {
-    res.status(500).json({ error: 'Failed to create listing.' });
-  }
+  } catch (err) {
+  console.error('❌ Error creating listing:', err);
+  res.status(500).json({ error: 'Failed to create listing.' });
+}
 });
 
 // Get all listings
