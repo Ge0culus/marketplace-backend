@@ -6,7 +6,7 @@ const router = express.Router();
 
 // Create a new listing
 router.post('/', authenticate, async (req, res) => {
-  const { title, description, price, imageUrl, location } = req.body;
+  const { title, description, price, imageUrl } = req.body;
 
   try {
     const listing = await Listing.create({
@@ -14,7 +14,6 @@ router.post('/', authenticate, async (req, res) => {
       description,
       price,
       imageUrl,
-      location,
       ownerId: req.user.id
     });
     res.status(201).json(listing);
@@ -70,13 +69,12 @@ router.put('/:id', authenticate, async (req, res) => {
       return res.status(404).json({ error: 'Listing not found or not owned by you' });
     }
 
-    const { title, description, price, imageUrl, location } = req.body;
+    const { title, description, price, imageUrl } = req.body;
 
     listing.title = title ?? listing.title;
     listing.description = description ?? listing.description;
     listing.price = price ?? listing.price;
     listing.imageUrl = imageUrl ?? listing.imageUrl;
-    listing.location = location ?? listing.location;
 
     await listing.save();
     res.json({ message: 'Listing updated', listing });
