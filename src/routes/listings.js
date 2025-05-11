@@ -4,7 +4,7 @@ const { Listing } = require('../models/Listing');
 
 const router = express.Router();
 
-// Create a new listing
+// Create listing
 router.post('/', authenticate, async (req, res) => {
   const { title, description, price, imageUrl } = req.body;
 
@@ -17,8 +17,7 @@ router.post('/', authenticate, async (req, res) => {
       ownerId: req.user.id
     });
     res.status(201).json(listing);
-  } catch (error) {
-    console.error(error);
+  } catch {
     res.status(500).json({ error: 'Failed to create listing.' });
   }
 });
@@ -28,77 +27,38 @@ router.get('/', async (req, res) => {
   try {
     const listings = await Listing.findAll();
     res.json(listings);
-  } catch (error) {
+  } catch {
     res.status(500).json({ error: 'Failed to fetch listings.' });
   }
 });
 
-// Get a specific listing by ID
-router.get('/:id', async (req, res) => {
-  try {
-    const listing = await Listing.findByPk(req.params.id);
-    if (!listing) {
-      return res.status(404).json({ error: 'Listing not found' });
-    }
-    res.json(listing);
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch listing.' });
-  }
-});
-
-// Get authenticated user's listings
+// Get my listings
 router.get('/my', authenticate, async (req, res) => {
   try {
     const listings = await Listing.findAll({
       where: { ownerId: req.user.id }
     });
     res.json(listings);
-  } catch (error) {
+  } catch {
     res.status(500).json({ error: 'Failed to fetch your listings.' });
   }
 });
 
-// Update a listing
-router.put('/:id', authenticate, async (req, res) => {
-  try {
-    const listing = await Listing.findOne({
-      where: { id: req.params.id, ownerId: req.user.id }
-    });
-
-    if (!listing) {
-      return res.status(404).json({ error: 'Listing not found or not owned by you' });
-    }
-
-    const { title, description, price, imageUrl } = req.body;
-
-    listing.title = title ?? listing.title;
-    listing.description = description ?? listing.description;
-    listing.price = price ?? listing.price;
-    listing.imageUrl = imageUrl ?? listing.imageUrl;
-
-    await listing.save();
-    res.json({ message: 'Listing updated', listing });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to update listing.' });
-  }
-});
-
-// Delete a listing
+// Delete listing
 router.delete('/:id', authenticate, async (req, res) => {
-  try {
-    const listing = await Listing.findOne({
-      where: { id: req.params.id, ownerId: req.user.id }
-    });
-
-    if (!listing) {
-      return res.status(404).json({ error: 'Listing not found or not yours' });
+  const listing = await Listing.findOne({
+    where: {
+      id: req.params.id,
+      ownerId: req.user.id
     }
+  });
 
-    await listing.destroy();
-    res.json({ message: 'Listing deleted' });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to delete listing.' });
+  if (!listing) {
+    return res.status(404).json({ error: 'Listing not found or not yours' });
   }
+
+  await listing.destroy();
+  res.json({ message: 'Listing deleted' });
 });
 
 module.exports = router;
